@@ -49,7 +49,7 @@ class VertiBayes:
                             # no parents, just select a random value
                             y += theta.get('p')
                             if (x <= y):
-                                individual[node.get('name')] = self._generateValue(theta)
+                                individual[node.get('name')] = theta.get('localValue').get('value')
                                 break
                         else:
                             # node has parents, so check if parent values have been selected yet
@@ -63,15 +63,18 @@ class VertiBayes:
                                     # A parent has the wrong value, move on
                                     correctTheta = False
                                     break
-                            y += theta.get('p')
-                            if (x <= y):
-                                individual[node.get('name')] = self._generateValue(theta)
-                                break
+                            if(correctTheta):
+                                y += theta.get('p')
+                                if (x <= y):
+                                    individual[node.get('name')] = theta.get('localValue').get('value')
+                                    break
+        self._dealWithMissingValues(individual)
         return individual
 
-    def _generateValue(self, theta):
-        # Convert missing values appropriatly for pgmpy
-        if theta.get('localValue').get('value') == '?':
-            return numpy.NaN
-        else:
-            return theta.get('localValue').get('value')
+    def _dealWithMissingValues(self, individual):
+        # python treates numpy.NaN as None, so cannot set these values while generation as my loop breaks
+        # ergo just convert after generation of an individual
+        # This is really dumb, why is numpy.NaN equal to None? Who designs these things
+        for key in individual:
+            if individual.get(key) == '?':
+                individual[key] = numpy.NaN
