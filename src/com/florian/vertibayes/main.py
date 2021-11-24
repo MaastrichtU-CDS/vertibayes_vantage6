@@ -4,7 +4,8 @@ from typing import Dict
 from typing import Tuple
 
 import requests
-import vantage6
+
+from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 
 WAIT = 10
 
@@ -15,14 +16,12 @@ def vertibayes(client, data, exclude_orgs=None, **kwargs):
     _shareEndpoints(client, exclude_orgs, n2nTask.id)
 
     target = _getCentralIP(n2nTask.id)
-    network = _trainBayes(target, kwargs.get('network'))
+    jsonNodes = _trainBayes(target, kwargs.get('nodes'))
+    vertibayes = VertiBayes(kwargs.get('population'), jsonNodes)
+    vertibayes.defineLocalNetwork()
+    vertibayes.trainNetwork()
 
-
-def _synthesizeData(network):
-
-
-def _trainLocalBayes(network, data):
-
+    return vertibayes.getNetwork()
 
 def _trainBayes(target, nodes):
     target_ip, target_port = _get_address_from_result(target)
