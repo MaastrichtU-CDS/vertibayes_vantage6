@@ -21,13 +21,14 @@ Vantage6 request:
 ```
 POPULATION =<Synthetic population size>
 NODES=<Predefined network structure>
+COMMODITYSERVER=<Organisation selected to play the role of commodity server>
     
 task = client.post_task(
     name="vertibayesPython",
     image="docker build -t carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/vertibayesPython",
     collaboration_id=1,
     input_={'method': 'vertibayes', 'master': True,
-            'kwargs': {'population':POPULATION, 'nodes':NODES , 'exclude_orgs': exclude_orgs}},
+            'kwargs': {commodityServer: COMMODITYSERVER, 'population':POPULATION, 'nodes':NODES , 'exclude_orgs': exclude_orgs}},
     organization_ids=[1]
 )
 ```

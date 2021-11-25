@@ -17,7 +17,7 @@ def vertibayes(client, data, exclude_orgs=None, **kwargs):
 
     # collect central and other ipadresses cuz I need to somehow select who central is
     central = _getIPAdresses(client, n2nTask.id, [kwargs.get('commodityServer')])
-    organisations = client.get('organiations') - kwargs.get('commodityServer')
+    organisations = client.get('organization_ids') - kwargs.get('commodityServer')
     others = _getIPAdresses(client, n2nTask.id, organisations)
 
     _initCentralServer(central, others)
@@ -82,7 +82,7 @@ def _shareEndpoints(client, exclude_orgs, id):
         collaboration_id=1,
         input_={'method': 'shareEndpoints', 'master': True,
                 'kwargs': {"task_id": id, 'exclude_orgs': exclude_orgs}},
-        organization_ids=[1]
+        organization_ids=client.get('organization_ids')
     )
 
 
@@ -94,7 +94,7 @@ def _initEndpoints(client, exclude_orgs):
         collaboration_id=1,
         input_={'method': 'init', 'master': True,
                 'kwargs': {'exclude_orgs': exclude_orgs}},
-        organization_ids=[1]
+        organization_ids=client.get('organization_ids')
     )
 
 def _wait():
@@ -108,5 +108,5 @@ def _killEndpoints(client, exclude_orgs):
         collaboration_id=1,
         input_={'method': 'killEndpoints', 'master': True,
                 'kwargs': {"task_id": id, 'exclude_orgs': exclude_orgs}},
-        organization_ids=[1]
+        organization_ids=client.get('organization_ids')
     )
