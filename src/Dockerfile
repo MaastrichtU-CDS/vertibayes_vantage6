@@ -1,5 +1,37 @@
-# Vantage6 algorithm-base has various vantage6 packages pre-installed
-FROM harbor.vantage6.ai/algorithms/algorithm-base:latest
+FROM maven:3.8-eclipse-temurin-17-alpine as builder
+ARG VERTIBAYES_PATH
+ARG N_SCALAR_PRODUCT_PATH
+ARG SSH_PRIVATE_KEY
+ARG SSH_PUBLIC_KEY
+
+RUN apk update && apk add openssh git
+
+RUN mkdir /build
+RUN mkdir /root/.ssh
+RUN echo "$SSH_PRIVATE_KEY" > /root/.ssh/id_rsa && \
+    echo "$SSH_PUBLIC_KEY" > /root/.ssh/id_rsa.pub && \
+    chmod 600 /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa.pub
+
+# make sure your domain is accepted
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan gitlab.com >> /root/.ssh/known_hosts
+
+# Build n-scalar-product protocol
+WORKDIR /build
+RUN git clone git@gitlab.com:fvandaalen/n-scalar-product-protocol.git
+
+WORKDIR /build/n-scalar-product-protocol/java
+RUN mvn install
+
+# Build vertibayes java
+WORKDIR /build
+RUN git clone git@gitlab.com:fvandaalen/vertibayes.git
+
+WORKDIR /build/vertibayes
+RUN mvn package
+
+FROM maven:3.8-eclipse-temurin-17-alpine as runner
 
 # This is a placeholder that should be overloaded by invoking
 # docker build with '--build-arg PKG_NAME=...'
@@ -7,7 +39,14 @@ ARG PKG_NAME="com.florian.vertibayes"
 
 # install federated algorithm
 COPY . /app
-RUN pip install /app
+COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar /app/vertibayes.jar
+
+RUN apk update && apk add python3 && ln -sf python3 /usr/bin/python
+RUN python3 -m ensurepip
+RUN pip3 install --no-cache --upgrade pip setuptools
+
+RUN pip3 install /app
+
 
 ENV PKG_NAME=${PKG_NAME}
 
