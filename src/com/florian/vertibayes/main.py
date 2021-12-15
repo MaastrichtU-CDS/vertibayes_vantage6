@@ -75,6 +75,7 @@ def _getIPAdresses(client, id, organisations):
 
 
 def _shareEndpoints(client, exclude_orgs, id):
+    # TODO: import urlcollector
     # share endpoints amongst the n2n setup
     task = client.post_task(
         name="urlCollector",

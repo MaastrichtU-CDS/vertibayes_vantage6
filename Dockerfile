@@ -31,24 +31,28 @@ RUN git clone git@gitlab.com:fvandaalen/vertibayes.git
 WORKDIR /build/vertibayes
 RUN mvn package
 
-FROM maven:3.8-eclipse-temurin-17-alpine as runner
+FROM openjdk:17-slim as runner
 
 # This is a placeholder that should be overloaded by invoking
 # docker build with '--build-arg PKG_NAME=...'
 ARG PKG_NAME="com.florian.vertibayes"
+ENV JAR_PATH="/app/vertibayes.jar"
+ENV SERVER_PORT=8888
 
 # install federated algorithm
 COPY . /app
-COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar /app/vertibayes.jar
+COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar $JAR_PATH
 
-RUN apk update && apk add python3 && ln -sf python3 /usr/bin/python
-RUN python3 -m ensurepip
-RUN pip3 install --no-cache --upgrade pip setuptools
+RUN apt update && apt install -y python3 python3-pip python3-dev g++ musl-dev libffi-dev libssl-dev
+RUN ln -sf python3 /usr/bin/python
 
-RUN pip3 install /app
+RUN pip3 install --no-cache setuptools wheel poetry
+
+WORKDIR /app
+RUN poetry install
 
 
 ENV PKG_NAME=${PKG_NAME}
 
 # Tell docker to execute `docker_wrapper()` when the image is run.
-CMD python -c "from vantage6.tools.docker_wrapper import docker_wrapper; docker_wrapper('${PKG_NAME}')"
+CMD poetry run python -c "from vantage6.tools.docker_wrapper import docker_wrapper; docker_wrapper('${PKG_NAME}')"

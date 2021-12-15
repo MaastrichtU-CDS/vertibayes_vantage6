@@ -21,9 +21,10 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://gitlab.com/fvandaalen/verticaldt',
-    packages=find_packages(),
+    packages=find_packages(where='./src'),
     python_requires='>=3.6',
     install_requires=[
-        'pandas'
+        'pandas==1.3.5'
+        'pgmpy==0.1.16'
     ]
 )
