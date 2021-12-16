@@ -9,6 +9,7 @@ from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 
 WAIT = 10
 
+
 def vertibayes(client, data, exclude_orgs=None, **kwargs):
     n2nTask = _initEndpoints(client, exclude_orgs)
     ## wait a moment for Spring to start
@@ -29,16 +30,18 @@ def vertibayes(client, data, exclude_orgs=None, **kwargs):
 
     return vertibayes.getNetwork()
 
+
 def _trainBayes(target, nodes):
     target_ip, target_port = _get_address_from_result(target)
 
-    targetUrl = "http://"+target_ip+":"+target_port
+    targetUrl = "http://" + target_ip + ":" + target_port
 
-    r = requests.get(targetUrl+"/maximumLikelyhood", json={
-        "nodes":nodes
+    r = requests.get(targetUrl + "/maximumLikelyhood", json={
+        "nodes": nodes
     })
 
     return r.json()
+
 
 def _initCentralServer(central, others):
     target_ip, target_port = _get_address_from_result(central)
@@ -50,15 +53,17 @@ def _initCentralServer(central, others):
     targetUrl = "http://" + target_ip + ":" + target_port
 
     r = requests.get(targetUrl + "/initCentralServer", json={
-        "secretServer":targetUrl,
-        "servers":servers
+        "secretServer": targetUrl,
+        "servers": servers
     })
+
 
 def _get_address_from_result(result: Dict[str, Any]) -> Tuple[str, int]:
     address = result['ip']
     port = result['port']
 
     return address, port
+
 
 def _getIPAdresses(client, id, organisations):
     # somehow get only the IP of the node assigned to play the role of commodity server
@@ -71,7 +76,6 @@ def _getIPAdresses(client, id, organisations):
         organization_ids=organisations
     )
     return
-
 
 
 def _shareEndpoints(client, exclude_orgs, id):
@@ -88,7 +92,7 @@ def _shareEndpoints(client, exclude_orgs, id):
 
 
 def _initEndpoints(client, exclude_orgs):
-    #start the various java endpoints for n2n
+    # start the various java endpoints for n2n
     return client.post_task(
         name="vertiBayesSpring",
         image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/vertibayes",
@@ -98,8 +102,10 @@ def _initEndpoints(client, exclude_orgs):
         organization_ids=client.get('organization_ids')
     )
 
+
 def _wait():
     time.sleep(WAIT)
+
 
 def _killEndpoints(client, exclude_orgs):
     # kill the various java endpoints for n2n
