@@ -43,6 +43,8 @@ ENV SERVER_PORT=8888
 COPY . /app
 COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar $JAR_PATH
 
+COPY --from=builder /build/vantage6-endpoint-collector /endpoint-collector
+
 RUN apt update && apt install -y python3 python3-pip python3-dev g++ musl-dev libffi-dev libssl-dev
 RUN ln -sf python3 /usr/bin/python
 

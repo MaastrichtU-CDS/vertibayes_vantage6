@@ -2,6 +2,7 @@ import time
 from typing import Any
 from typing import Dict
 from typing import Tuple
+from com.florian.urlcollector import UrlCollector
 
 import requests
 
@@ -11,6 +12,7 @@ WAIT = 10
 
 
 def vertibayes(client, data, exclude_orgs=None, **kwargs):
+    # TODO: use urlcollector directly
     n2nTask = _initEndpoints(client, exclude_orgs)
     ## wait a moment for Spring to start
     _wait()
@@ -66,6 +68,7 @@ def _get_address_from_result(result: Dict[str, Any]) -> Tuple[str, int]:
 
 
 def _getIPAdresses(client, id, organisations):
+    # TODO: Use urlcollector locally
     # somehow get only the IP of the node assigned to play the role of commodity server
     task = client.post_task(
         name="urlcollector",
