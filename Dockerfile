@@ -52,8 +52,8 @@ WORKDIR /app
 RUN poetry install && poetry cache clear -n --all pypi
 
 # Installing torch with pip to be able to install it cpu-only because it is significantly smaller
-RUN pip install torch==1.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
-RUN pip install pgmpy
+#RUN poetry run pip install torch==1.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+#RUN poetry run pip install pgmpy
 
 
 ENV PKG_NAME=${PKG_NAME}

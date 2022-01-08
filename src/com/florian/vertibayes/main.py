@@ -6,12 +6,13 @@ from typing import Tuple
 import requests
 from vantage6.common import info
 
-from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
+# from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 from com.florian import urlcollector
 
 WAIT = 10
 RETRY = 10
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
+
 
 def vertibayes(client, data, node1, node2, commodity_node, *args, **kwargs):
     """
@@ -25,14 +26,14 @@ def vertibayes(client, data, node1, node2, commodity_node, *args, **kwargs):
     """
     # TODO: init node 1
     info('Initializing node 1')
-    node1_task = _initEndpoints(client, node1)
+    node1_task = _initEndpoints(client, [node1])
 
     # TODO: init node 2
     info('Initializing node 2')
-    node2_task = _initEndpoints(client, node2)
+    node2_task = _initEndpoints(client, [node2])
     # TODO: init commodity server?
     info('initializing commodity server')
-    commodity_node_task = _initEndpoints(client, commodity_node)
+    commodity_node_task = _initEndpoints(client, [commodity_node])
 
     # TODO: Async would be more efficient
     node1_address = _await_addresses(client, node1_task["id"])[0]
