@@ -29,7 +29,7 @@ WORKDIR /build
 RUN git clone git@gitlab.com:fvandaalen/vertibayes.git
 
 WORKDIR /build/vertibayes
-RUN mvn package
+RUN mvn package -Dmaven.test.skip
 
 FROM openjdk:17-slim as runner
 
@@ -49,7 +49,11 @@ RUN ln -sf python3 /usr/bin/python
 RUN pip3 install --no-cache setuptools wheel poetry
 
 WORKDIR /app
-RUN poetry install
+RUN poetry install && poetry cache clear -n --all pypi
+
+# Installing torch with pip to be able to install it cpu-only because it is significantly smaller
+RUN pip install torch==1.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+RUN pip install pgmpy
 
 
 ENV PKG_NAME=${PKG_NAME}
