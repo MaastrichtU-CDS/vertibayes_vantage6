@@ -18,4 +18,4 @@ class VertibayesClient:
                                        organizations=[commodity_node],
                                        name=NAME, image=IMAGE, description=NAME,
                                        input={'method': 'vertibayes', 'master': True,
-                                              'args': [commodity_node, node1, node2]})
+                                              'args': [node1, node2, commodity_node]})

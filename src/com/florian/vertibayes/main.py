@@ -1,8 +1,10 @@
+import asyncio.subprocess
 import time
 from typing import Any, List
 from typing import Dict
 from typing import Tuple
 
+from com.florian.vertibayes import secondary
 import requests
 from vantage6.common import info
 
@@ -33,17 +35,24 @@ def vertibayes(client, data, node1, node2, commodity_node, *args, **kwargs):
     node2_task = _initEndpoints(client, [node2])
     # TODO: init commodity server?
     info('initializing commodity server')
-    commodity_node_task = _initEndpoints(client, [commodity_node])
+    commodity_node_task = secondary.init_commodity()
 
     # TODO: Async would be more efficient
     node1_address = _await_addresses(client, node1_task["id"])[0]
+    info(f'Node 1 address: {node1_address}')
     node2_address = _await_addresses(client, node2_task["id"])[0]
-    commodity_address = _await_addresses(client, commodity_node_task["id"])[0]
+    info(f'Node 2 address: {node2_address}')
+    # commodity_address = _await_addresses(client, commodity_node_task["id"])[0]
+    # Assuming commodity server is on same machine
+    commodity_address = _http_url('localhost', 8888)
+    info(f'Commodity address: {commodity_address}')
 
     # wait a moment for Spring to start
+    info('Waiting for spring to start...')
     _wait()
-
+    info('Sharing addresses with node 1')
     urlcollector.put_endpoints(node1_address, [node2_address])
+    info('Sharing addresses with node 2')
     urlcollector.put_endpoints(node2_address, [node1_address])
 
     _initCentralServer(commodity_address, [node1_address, node2_address])
@@ -111,7 +120,7 @@ def _await_addresses(client, task_id, n_nodes=1):
     addresses = client.get_other_node_ip_and_port(task_id=task_id)
 
     c = 0
-    while not len(addresses) == n_nodes:
+    while not _addresses_complete(addresses):
         if c >= RETRY:
             raise Exception('Retried too many times')
 
@@ -121,6 +130,14 @@ def _await_addresses(client, task_id, n_nodes=1):
         time.sleep(4)
 
     return [_http_url(address['ip'], address['port']) for address in addresses]
+
+
+def _addresses_complete(addresses):
+    for a in addresses:
+        if not a['port']:
+            return False
+
+    return True
 
 
 def _http_url(address: str, port: int):
