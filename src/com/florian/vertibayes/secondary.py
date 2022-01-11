@@ -1,6 +1,6 @@
-import asyncio
 import os
 import subprocess
+
 from vantage6.common import info
 
 DEFAULT_PORT = 8888

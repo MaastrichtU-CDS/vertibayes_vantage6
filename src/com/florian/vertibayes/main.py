@@ -16,50 +16,53 @@ RETRY = 10
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
-def vertibayes(client, data, node1, node2, commodity_node, *args, **kwargs):
-    """
+def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
+        """
+    
+        :param client:
+        :param exclude_orgs:
+        :param node1: organization id of node 1
+        :param node2: organization id of node 2
+        :param commoditynode: organization id of commodity node
+        :return:
+        """
+        # TODO: init node 1
+        info('Initializing node 1')
+        node1_task = _initEndpoints(client, [node1])
 
-    :param client:
-    :param exclude_orgs:
-    :param node1: organization id of node 1
-    :param node2: organization id of node 2
-    :param commoditynode: organization id of commodity node
-    :return:
-    """
-    # TODO: init node 1
-    info('Initializing node 1')
-    node1_task = _initEndpoints(client, [node1])
+        # TODO: init node 2
+        info('Initializing node 2')
+        node2_task = _initEndpoints(client, [node2])
+        # TODO: init commodity server?
+        info('initializing commodity server')
+        commodity_node_task = secondary.init_local()
 
-    # TODO: init node 2
-    info('Initializing node 2')
-    node2_task = _initEndpoints(client, [node2])
-    # TODO: init commodity server?
-    info('initializing commodity server')
-    commodity_node_task = secondary.init_commodity()
+        # TODO: Async would be more efficient
+        node1_address = _await_addresses(client, node1_task["id"])[0]
+        info(f'Node 1 address: {node1_address}')
+        node2_address = _await_addresses(client, node2_task["id"])[0]
+        info(f'Node 2 address: {node2_address}')
+        # commodity_address = _await_addresses(client, commodity_node_task["id"])[0]
+        # Assuming commodity server is on same machine
+        commodity_address = _http_url('localhost', 8888)
+        info(f'Commodity address: {commodity_address}')
 
-    # TODO: Async would be more efficient
-    node1_address = _await_addresses(client, node1_task["id"])[0]
-    info(f'Node 1 address: {node1_address}')
-    node2_address = _await_addresses(client, node2_task["id"])[0]
-    info(f'Node 2 address: {node2_address}')
-    # commodity_address = _await_addresses(client, commodity_node_task["id"])[0]
-    # Assuming commodity server is on same machine
-    commodity_address = _http_url('localhost', 8888)
-    info(f'Commodity address: {commodity_address}')
+        # wait a moment for Spring to start
+        info('Waiting for spring to start...')
+        _wait()
+        info('Sharing addresses with node 1')
+        urlcollector.put_endpoints(node1_address, [node2_address])
+        info('Sharing addresses with node 2')
+        urlcollector.put_endpoints(node2_address, [node1_address])
 
-    # wait a moment for Spring to start
-    info('Waiting for spring to start...')
-    _wait()
-    info('Sharing addresses with node 1')
-    urlcollector.put_endpoints(node1_address, [node2_address])
-    info('Sharing addresses with node 2')
-    urlcollector.put_endpoints(node2_address, [node1_address])
+        _initCentralServer(commodity_address, [node1_address, node2_address])
 
-    _initCentralServer(commodity_address, [node1_address, node2_address])
 
-    return {}
 
-    # jsonNodes = _trainBayes(central, kwargs.get('nodes'))
+        jsonNodes = _trainBayes(commodity_address, initial_network)
+
+        return jsonNodes
+
     # vertibayes = VertiBayes(kwargs.get('population'), jsonNodes)
     # vertibayes.defineLocalNetwork()
     # vertibayes.trainNetwork()
@@ -67,20 +70,16 @@ def vertibayes(client, data, node1, node2, commodity_node, *args, **kwargs):
     # return vertibayes.getNetwork()
 
 
-# def _trainBayes(target, nodes):
-#     target_ip, target_port = _get_address_from_result(target)
-#
-#     targetUrl = "http://" + target_ip + ":" + target_port
-#
-#     r = requests.get(targetUrl + "/maximumLikelyhood", json={
-#         "nodes": nodes
-#     })
-#
-#     return r.json()
+def _trainBayes(targetUrl, initial_network):
+    r = requests.post(targetUrl + "/maximumLikelyhood", json={
+        "nodes": initial_network
+    })
+
+    return r.json()
 
 
 def _initCentralServer(central: str, others: List[str]):
-    r = requests.get(central + "/initCentralServer", json={
+    r = requests.post(central + "/initCentralServer", json={
         "secretServer": central,
         "servers": others
     })

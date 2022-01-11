@@ -1,0 +1,5 @@
+.gitignore
+.git
+Dockerfile
+.idea
+.ipynb_checkpoints

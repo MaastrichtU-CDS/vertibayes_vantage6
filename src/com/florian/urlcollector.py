@@ -88,9 +88,8 @@ def _set_endpoints(target, endpoints):
 
 
 def put_endpoints(targetUrl, others):
-    r = requests.put(targetUrl + "/setEndpoints", json={
-        "servers": others
-    }, timeout=10)
+    payload = {"servers": others}
+    r = requests.put(targetUrl + "/setEndpoints", data=payload, timeout=10)
     return r.json()
 
 

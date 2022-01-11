@@ -3,6 +3,72 @@ import vantage6.client
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 NAME = 'vertibayes from client'
 
+INITIAL_NETWORK = {"nodes": [
+    {
+        "parents": [],
+        "children": [],
+        "uniquevalues": [
+            "0",
+            "1"
+        ],
+        "name": "x1",
+        "type": "number",
+        "probabilities": []
+    },
+    {
+        "parents": [{
+            "parents": [],
+            "children": [],
+            "uniquevalues": [
+                "0",
+                "1"
+            ],
+            "name": "x1",
+            "type": "number",
+            "probabilities": []
+        }],
+        "children": [],
+        "uniquevalues": [
+            "0",
+            "1"
+        ],
+        "name": "x2",
+        "type": "number",
+        "probabilities": []
+    },
+    {
+        "parents": [{
+            "parents": [{
+                "parents": [],
+                "children": [],
+                "uniquevalues": [
+                    "0",
+                    "1"
+                ],
+                "name": "x1",
+                "type": "number",
+                "probabilities": []
+            }],
+            "children": [],
+            "uniquevalues": [
+                "0",
+                "1"
+            ],
+            "name": "x2",
+            "type": "number",
+            "probabilities": []
+        }],
+        "children": [],
+        "uniquevalues": [
+            "0",
+            "1"
+        ],
+        "name": "x3",
+        "type": "number",
+        "probabilities": []
+    }
+]}
+
 
 class VertibayesClient:
 
@@ -18,4 +84,4 @@ class VertibayesClient:
                                        organizations=[commodity_node],
                                        name=NAME, image=IMAGE, description=NAME,
                                        input={'method': 'vertibayes', 'master': True,
-                                              'args': [node1, node2, commodity_node]})
+                                              'args': [node1, node2, INITIAL_NETWORK]})

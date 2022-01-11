@@ -39,14 +39,15 @@ ARG PKG_NAME="com.florian.vertibayes"
 ENV JAR_PATH="/app/vertibayes.jar"
 ENV SERVER_PORT=8888
 
-# install federated algorithm
-COPY . /app
-COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar $JAR_PATH
-
 RUN apt update && apt install -y python3 python3-pip python3-dev g++ musl-dev libffi-dev libssl-dev
 RUN ln -sf python3 /usr/bin/python
-
 RUN pip3 install --no-cache setuptools wheel poetry
+
+COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar $JAR_PATH
+
+# install federated algorithm
+COPY . /app
+
 
 WORKDIR /app
 RUN poetry install && poetry cache clear -n --all pypi
@@ -54,7 +55,6 @@ RUN poetry install && poetry cache clear -n --all pypi
 # Installing torch with pip to be able to install it cpu-only because it is significantly smaller
 #RUN poetry run pip install torch==1.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 #RUN poetry run pip install pgmpy
-
 
 ENV PKG_NAME=${PKG_NAME}
 
