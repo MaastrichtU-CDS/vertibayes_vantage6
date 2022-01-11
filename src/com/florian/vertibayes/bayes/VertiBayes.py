@@ -116,3 +116,12 @@ class VertiBayes:
 
         # close the file
         f.close()
+
+    def _visualize(self, network: BayesianNetwork):
+        # Simple method to visualize the bayesian network
+        # This can be used in conjunction with the CSV with CPD's to give to the controllers
+        # This will also need to be transfered to the researcher side at some point, but storing it here for now.
+        import networkx as nx
+        import matplotlib.pyplot as plt
+        nx.draw(network, with_labels=True)
+        plt.show()
