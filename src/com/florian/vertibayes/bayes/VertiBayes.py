@@ -78,3 +78,41 @@ class VertiBayes:
         for key in individual:
             if individual.get(key) == '?':
                 individual[key] = numpy.NaN
+
+
+    def _generateOutputCSV(self, network: BayesianNetwork):
+        # Function to generate a CSV based on the network generated.
+        # This generation is needed to provide the controllers at CBS something to work with.
+        # This little script should probably be moved to the researcher at some point.
+        import csv
+        from pgmpy.factors.discrete import TabularCPD
+
+        # open the file in the write mode
+        f = open('test.csv', 'w', newline='')
+        # create the csv writer
+        writer = csv.writer(f)
+        # write a cpd to the file
+        for cpd in network.get_cpds():
+            header = []
+            header.append("Variable: "+cpd.variable)
+            # add a header for each CPD to indicate which main attribute this belongs to
+            writer.writerow(header)
+            cpd: TabularCPD = cpd
+            string = cpd.__str__()
+
+            # reformat the string they print to a table I can actually stick in a CSV
+            # Why does their object consist of seperate tables for the values & states? How am I supposed to know which
+            # cell in the table corresponds to which state without checking it against the print? Why is this not one dictionairy?
+            reformat = string.replace("-","").replace("+","").replace("|",",").replace(",\n\n,",";").replace("\n,","").replace(",\n","").replace(" ","")
+            rows = reformat.split(";")
+            table = [];
+            for row in rows:
+                table.append(row.split(","))
+
+            # print table
+            for row in table:
+                writer.writerow(row)
+            writer.writerow("")
+
+        # close the file
+        f.close()
