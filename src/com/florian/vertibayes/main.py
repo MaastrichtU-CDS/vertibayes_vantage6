@@ -1,15 +1,12 @@
-import asyncio.subprocess
 import time
-from typing import Any, List
-from typing import Dict
-from typing import Tuple
+from typing import List
 
-from com.florian.vertibayes import secondary
 import requests
 from vantage6.common import info
 
 # from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 from com.florian import urlcollector
+from com.florian.vertibayes import secondary
 
 WAIT = 10
 RETRY = 10
