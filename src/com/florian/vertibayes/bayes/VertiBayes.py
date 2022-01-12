@@ -1,4 +1,5 @@
 import json
+import pickle
 import random
 
 import numpy
@@ -125,3 +126,9 @@ class VertiBayes:
         import matplotlib.pyplot as plt
         nx.draw(network, with_labels=True)
         plt.show()
+
+    def _pickle(self, network):
+        return pickle.dumps(network)
+
+    def _load(self, pickles):
+        return pickle.loads(pickles)
