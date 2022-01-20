@@ -9,7 +9,7 @@ from com.florian import urlcollector
 from com.florian.vertibayes import secondary
 
 WAIT = 10
-RETRY = 10
+RETRY = 20
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
@@ -23,6 +23,8 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
         :param commoditynode: organization id of commodity node
         :return:
         """
+        info('logging something to see if my chances actually get in')
+
         # TODO: init node 1
         info('Initializing node 1')
         node1_task = _initEndpoints(client, [node1])
@@ -34,6 +36,7 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
         info('initializing commodity server')
         commodity_node_task = secondary.init_local()
 
+        info('logging something to see if my chances actually get in')
         # TODO: Async would be more efficient
         node1_address = _await_addresses(client, node1_task["id"])[0]
         info(f'Node 1 address: {node1_address}')
@@ -48,13 +51,14 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
         info('Waiting for spring to start...')
         _wait()
         info('Sharing addresses with node 1')
-        urlcollector.put_endpoints(node1_address, [node2_address])
+        #ToDo: share global adress as commodity adress, not local adress
+        urlcollector.put_endpoints(node1_address, [node2_address, commodity_address])
+
         info('Sharing addresses with node 2')
-        urlcollector.put_endpoints(node2_address, [node1_address])
+        # ToDo: share global adress as commodity adress, not local adress
+        urlcollector.put_endpoints(node2_address, [node1_address, commodity_address])
 
         _initCentralServer(commodity_address, [node1_address, node2_address])
-
-
 
         jsonNodes = _trainBayes(commodity_address, initial_network)
 
@@ -120,10 +124,10 @@ def _await_addresses(client, task_id, n_nodes=1):
         if c >= RETRY:
             raise Exception('Retried too many times')
 
-        info('Polling results for port numbers...')
+        info(f'Polling results for port numbers attempt {c}...')
         addresses = client.get_other_node_ip_and_port(task_id=task_id)
         c += 1
-        time.sleep(4)
+        time.sleep(WAIT)
 
     return [_http_url(address['ip'], address['port']) for address in addresses]
 

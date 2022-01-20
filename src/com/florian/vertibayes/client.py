@@ -3,71 +3,73 @@ import vantage6.client
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 NAME = 'vertibayes from client'
 
-INITIAL_NETWORK = {"nodes": [
-    {
-        "parents": [],
-        "children": [],
-        "uniquevalues": [
+INITIAL_NETWORK = [
+      {
+      "parents": [],
+      "children": [],
+      "uniquevalues":       [
+         "0",
+         "1"
+      ],
+      "name": "x1",
+      "type": "number",
+      "probabilities": []
+   },
+      {
+      "parents": [      {
+         "parents": [],
+         "children": [],
+         "uniquevalues":          [
             "0",
             "1"
-        ],
-        "name": "x1",
-        "type": "number",
-        "probabilities": []
-    },
-    {
-        "parents": [{
+         ],
+         "name": "x1",
+         "type": "number",
+         "probabilities": []
+      }],
+      "children": [],
+      "uniquevalues":       [
+         "0",
+         "1"
+      ],
+      "name": "x2",
+      "type": "number",
+      "probabilities": []
+   },
+      {
+      "parents": [      {
+         "parents": [         {
             "parents": [],
             "children": [],
-            "uniquevalues": [
-                "0",
-                "1"
+            "uniquevalues":             [
+               "0",
+               "1"
             ],
             "name": "x1",
             "type": "number",
             "probabilities": []
-        }],
-        "children": [],
-        "uniquevalues": [
+         }],
+         "children": [],
+         "uniquevalues":          [
             "0",
             "1"
-        ],
-        "name": "x2",
-        "type": "number",
-        "probabilities": []
-    },
-    {
-        "parents": [{
-            "parents": [{
-                "parents": [],
-                "children": [],
-                "uniquevalues": [
-                    "0",
-                    "1"
-                ],
-                "name": "x1",
-                "type": "number",
-                "probabilities": []
-            }],
-            "children": [],
-            "uniquevalues": [
-                "0",
-                "1"
-            ],
-            "name": "x2",
-            "type": "number",
-            "probabilities": []
-        }],
-        "children": [],
-        "uniquevalues": [
-            "0",
-            "1"
-        ],
-        "name": "x3",
-        "type": "number",
-        "probabilities": []
-    }
-]}
+         ],
+         "name": "x2",
+         "type": "number",
+         "probabilities": []
+      }],
+      "children": [],
+      "uniquevalues":       [
+         "0",
+         "1"
+      ],
+      "name": "x3",
+      "type": "number",
+      "probabilities": []
+   }
+]
+
+
 
 
 class VertibayesClient:
