@@ -50,6 +50,11 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
         # wait a moment for Spring to start
         info('Waiting for spring to start...')
         _wait()
+
+        #set ids
+        _setId(commodity_address, "0");
+        _setId(node1_address, "1");
+        _setId(node2_address, "2");
         info('Sharing addresses with node 1')
         #ToDo: share global adress as commodity adress, not local adress
         urlcollector.put_endpoints(node1_address, [node2_address, commodity_address])
@@ -88,6 +93,8 @@ def _initCentralServer(central: str, others: List[str]):
     if not r.ok:
         raise Exception("Could not initialize central server")
 
+def _setId(ip: str, id:str):
+    r = requests.post(ip + "/setID?id="+id)
 
 def _initEndpoints(client, organizations):
     # start the various java endpoints for n2n
