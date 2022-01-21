@@ -67,6 +67,10 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
 
         jsonNodes = _trainBayes(commodity_address, initial_network)
 
+        info('Commiting murder')
+        _killSpring(node1_address)
+        _killSpring(node2_address)
+
         return jsonNodes
 
     # vertibayes = VertiBayes(kwargs.get('population'), jsonNodes)
@@ -93,6 +97,9 @@ def _initCentralServer(central: str, others: List[str]):
     if not r.ok:
         raise Exception("Could not initialize central server")
 
+def _killSpring(server: str):
+    r = requests.put(server + "/kill")
+
 def _setId(ip: str, id:str):
     r = requests.post(ip + "/setID?id="+id)
 
@@ -109,19 +116,6 @@ def _initEndpoints(client, organizations):
 
 def _wait():
     time.sleep(WAIT)
-
-
-def _killEndpoints(client, exclude_orgs):
-    # kill the various java endpoints for n2n
-    task = client.post_task(
-        name="urlCollector",
-        image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/urlCollector",
-        collaboration_id=1,
-        input_={'method': 'killEndpoints', 'master': True,
-                'kwargs': {"task_id": id, 'exclude_orgs': exclude_orgs}},
-        organization_ids=client.get('organization_ids')
-    )
-
 
 def _await_addresses(client, task_id, n_nodes=1):
     addresses = client.get_other_node_ip_and_port(task_id=task_id)
