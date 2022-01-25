@@ -13,7 +13,7 @@ RETRY = 20
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
-def vertibayes(client, data, node1, node2, initial_network, population, *args, **kwargs):
+def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs):
         """
     
         :param client:
@@ -23,31 +23,23 @@ def vertibayes(client, data, node1, node2, initial_network, population, *args, *
         :param commoditynode: organization id of commodity node
         :return:
         """
-        info('logging something to see if my chances actually get in')
+        tasks = []
+        info('Initializing nodes')
+        for node in nodes:
+            tasks.append(_initEndpoints(client, [node]))
 
-        # ToDo make this run with an arbitrary number of nodes
-        # TODO: init node 1
-        info('Initializing node 1')
-        node1_task = _initEndpoints(client, [node1])
-
-        # TODO: init node 2
-        info('Initializing node 2')
-        node2_task = _initEndpoints(client, [node2])
-        # TODO: init commodity server?
+        # TODO: init commodity server on a different server?
         info('initializing commodity server')
         commodity_node_task = secondary.init_local()
 
-        info('logging something to see if my chances actually get in')
-        # TODO: Async would be more efficient
-        node1_address = _await_addresses(client, node1_task["id"])[0]
-        info(f'Node 1 address: {node1_address}')
-        node2_address = _await_addresses(client, node2_task["id"])[0]
-        info(f'Node 2 address: {node2_address}')
+        adresses = []
+        for task in tasks:
+            adresses.append(_await_addresses(client, task["id"])[0])
 
-        #assuming the last taks before node1_task controls the commodity server
+        #assuming the last taks before tasks[0] controls the commodity server
         #Assumption is basically that noone got in between the starting of this master-task and its subtasks
         #ToDo make this more stable in case of multiple users
-        global_commodity_address = _await_addresses(client, node1_task["id"]-1)[0]
+        global_commodity_address = _await_addresses(client, tasks[0]["id"]-1)[0]
 
         # Assuming commodity server is on same machine
         commodity_address = _http_url('localhost', 8888)
@@ -57,26 +49,24 @@ def vertibayes(client, data, node1, node2, initial_network, population, *args, *
         info('Waiting for spring to start...')
         _wait()
 
-        #set ids
+        info('Sharing addresses & setting ids')
         _setId(commodity_address, "0");
-        _setId(node1_address, "1");
-        _setId(node2_address, "2");
-        info('Sharing addresses with node 1')
-        urlcollector.put_endpoints(node1_address, [node2_address, global_commodity_address])
+        id = 1
+        for adress in adresses:
+            _setId(adress, str(id));
+            id+=1
+            others = adresses.copy()
+            others.remove(adress)
+            others.append(global_commodity_address)
+            urlcollector.put_endpoints(adress, others)
 
-        info('Sharing addresses with node 2')
-        urlcollector.put_endpoints(node2_address, [node1_address, global_commodity_address])
-
-        _initCentralServer(commodity_address, [node1_address, node2_address])
+        _initCentralServer(commodity_address, adresses)
 
         jsonNodes = _trainBayes(commodity_address, initial_network)
 
         info('Commiting murder')
-        # Committing murder results in crashes in vantage6
-        # Spring gets killed correctly, but vantage6 doesn't like the image closing without a response
-        # ToDo fix this, somehow
-        _killSpring(node1_address)
-        _killSpring(node2_address)
+        for adress in adresses:
+            _killSpring(adress)
 
         vertibayes = VertiBayes(population, jsonNodes)
         vertibayes.defineLocalNetwork()
