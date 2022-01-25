@@ -18,10 +18,9 @@ def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs
     
         :param client:
         :param exclude_orgs:
-        :param node1: organization id of node 1
-        :param node2: organization id of node 2
+        :param nodes, organizations who own the data
         :param commoditynode: organization id of commodity node
-        :return:
+        :return: bayesian network in the form of a bif-file, such as pgmpy expects.
         """
         tasks = []
         info('Initializing nodes')
@@ -71,7 +70,7 @@ def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs
         vertibayes = VertiBayes(population, jsonNodes)
         vertibayes.defineLocalNetwork()
         vertibayes.trainNetwork()
-        info(f'Bif: {vertibayes.toBif()}')
+
         return vertibayes.toBif()
 
 
