@@ -1,16 +1,18 @@
-import json
 import random
 
 import numpy
 import pandas
 from pgmpy.models import BayesianNetwork
+from pgmpy.readwrite import BIFReader
+from pgmpy.readwrite import BIFWriter
+
 
 
 class VertiBayes:
     def __init__(self, population, nodes):
         self.__population = population
         self.__network = None
-        self.__nodes = json.loads(nodes)
+        self.__nodes = nodes
 
     def getNetwork(self):
         return self.__network
@@ -26,7 +28,6 @@ class VertiBayes:
         self.__network.fit(self._generateData())
 
     def _generateData(self):
-        individual = self._generateIndividual()
         data = []
         for i in range(0, self.__population):
             data.append(self._generateIndividual())
@@ -78,3 +79,10 @@ class VertiBayes:
         for key in individual:
             if individual.get(key) == '?':
                 individual[key] = numpy.NaN
+
+    def toBif(self):
+        x = BIFWriter(self.__network).__str__()
+        return x
+
+    def fromBif(self, str):
+       return BIFReader(None, str).get_model()

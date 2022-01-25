@@ -4,16 +4,16 @@ from typing import List
 import requests
 from vantage6.common import info
 
-# from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 from com.florian import urlcollector
 from com.florian.vertibayes import secondary
+from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 
 WAIT = 10
 RETRY = 20
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
-def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
+def vertibayes(client, data, node1, node2, initial_network, population, *args, **kwargs):
         """
     
         :param client:
@@ -75,18 +75,14 @@ def vertibayes(client, data, node1, node2, initial_network, *args, **kwargs):
         # Committing murder results in crashes in vantage6
         # Spring gets killed correctly, but vantage6 doesn't like the image closing without a response
         # ToDo fix this, somehow
-        # _killSpring(node1_address)
-        # _killSpring(node2_address)
+        _killSpring(node1_address)
+        _killSpring(node2_address)
 
-        return jsonNodes
-
-        #Something goes wrong when I import this
-        # ToDo fix this
-        # vertibayes = VertiBayes(kwargs.get('population'), jsonNodes)
-        # vertibayes.defineLocalNetwork()
-        # vertibayes.trainNetwork()
-        #
-        # return vertibayes.getNetwork()
+        vertibayes = VertiBayes(population, jsonNodes)
+        vertibayes.defineLocalNetwork()
+        vertibayes.trainNetwork()
+        info(f'Bif: {vertibayes.toBif()}')
+        return vertibayes.toBif()
 
 
 def _trainBayes(targetUrl, initial_network):
@@ -107,7 +103,12 @@ def _initCentralServer(central: str, others: List[str]):
         raise Exception("Could not initialize central server")
 
 def _killSpring(server: str):
-    r = requests.put(server + "/kill")
+    try:
+        r = requests.put(server + "/kill")
+    except Exception as e:
+        # We expect an error here
+        info(e)
+        pass
 
 def _setId(ip: str, id:str):
     r = requests.post(ip + "/setID?id="+id)
