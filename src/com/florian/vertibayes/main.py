@@ -1,112 +1,144 @@
 import time
-from typing import Any
-from typing import Dict
-from typing import Tuple
+from typing import List
 
 import requests
+from vantage6.common import info
 
+from com.florian import urlcollector
+from com.florian.vertibayes import secondary
 from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 
 WAIT = 10
+RETRY = 20
+IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
-def vertibayes(client, data, exclude_orgs=None, **kwargs):
-    n2nTask = _initEndpoints(client, exclude_orgs)
-    ## wait a moment for Spring to start
-    _wait()
-    _shareEndpoints(client, exclude_orgs, n2nTask.id)
 
-    # collect central and other ipadresses cuz I need to somehow select who central is
-    central = _getIPAdresses(client, n2nTask.id, [kwargs.get('commodityServer')])
-    organisations = client.get('organization_ids') - kwargs.get('commodityServer')
-    others = _getIPAdresses(client, n2nTask.id, organisations)
+def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs):
+        """
+    
+        :param client:
+        :param exclude_orgs:
+        :param nodes, organizations who own the data
+        :param commoditynode: organization id of commodity node
+        :return: bayesian network in the form of a bif-file, such as pgmpy expects.
+        """
+        tasks = []
+        info('Initializing nodes')
+        for node in nodes:
+            tasks.append(_initEndpoints(client, [node]))
 
-    _initCentralServer(central, others)
+        # TODO: init commodity server on a different server?
+        info('initializing commodity server')
+        commodity_node_task = secondary.init_local()
 
-    jsonNodes = _trainBayes(central, kwargs.get('nodes'))
-    vertibayes = VertiBayes(kwargs.get('population'), jsonNodes)
-    vertibayes.defineLocalNetwork()
-    vertibayes.trainNetwork()
+        adresses = []
+        for task in tasks:
+            adresses.append(_await_addresses(client, task["id"])[0])
 
-    return vertibayes.getNetwork()
+        #assuming the last taks before tasks[0] controls the commodity server
+        #Assumption is basically that noone got in between the starting of this master-task and its subtasks
+        #ToDo make this more stable in case of multiple users
+        global_commodity_address = _await_addresses(client, tasks[0]["id"]-1)[0]
 
-def _trainBayes(target, nodes):
-    target_ip, target_port = _get_address_from_result(target)
+        # Assuming commodity server is on same machine
+        commodity_address = _http_url('localhost', 8888)
+        info(f'Commodity address: {commodity_address}')
 
-    targetUrl = "http://"+target_ip+":"+target_port
+        # wait a moment for Spring to start
+        info('Waiting for spring to start...')
+        _wait()
 
-    r = requests.get(targetUrl+"/maximumLikelyhood", json={
-        "nodes":nodes
+        info('Sharing addresses & setting ids')
+        _setId(commodity_address, "0");
+        id = 1
+        for adress in adresses:
+            _setId(adress, str(id));
+            id+=1
+            others = adresses.copy()
+            others.remove(adress)
+            others.append(global_commodity_address)
+            urlcollector.put_endpoints(adress, others)
+
+        _initCentralServer(commodity_address, adresses)
+
+        jsonNodes = _trainBayes(commodity_address, initial_network)
+
+        info('Commiting murder')
+        for adress in adresses:
+            _killSpring(adress)
+
+        vertibayes = VertiBayes(population, jsonNodes)
+        vertibayes.defineLocalNetwork()
+        vertibayes.trainNetwork()
+
+        return vertibayes.toBif()
+
+
+def _trainBayes(targetUrl, initial_network):
+    r = requests.post(targetUrl + "/maximumLikelyhood", json={
+        "nodes": initial_network
     })
 
     return r.json()
 
-def _initCentralServer(central, others):
-    target_ip, target_port = _get_address_from_result(central)
-    servers = []
-    for i in range(len(others)):
-        server_ip, server_port = _get_address_from_result(others[i])
-        servers.append("http://" + server_ip + ":" + server_port)
 
-    targetUrl = "http://" + target_ip + ":" + target_port
-
-    r = requests.get(targetUrl + "/initCentralServer", json={
-        "secretServer":targetUrl,
-        "servers":servers
+def _initCentralServer(central: str, others: List[str]):
+    r = requests.post(central + "/initCentralServer", json={
+        "secretServer": central,
+        "servers": others
     })
 
-def _get_address_from_result(result: Dict[str, Any]) -> Tuple[str, int]:
-    address = result['ip']
-    port = result['port']
+    if not r.ok:
+        raise Exception("Could not initialize central server")
 
-    return address, port
+def _killSpring(server: str):
+    try:
+        r = requests.put(server + "/kill")
+    except Exception as e:
+        # We expect an error here
+        info(e)
+        pass
 
-def _getIPAdresses(client, id, organisations):
-    # somehow get only the IP of the node assigned to play the role of commodity server
-    task = client.post_task(
-        name="urlcollector",
-        image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/urlCollector",
-        collaboration_id=1,
-        input_={'method': 'getEndpoints', 'master': True,
-                'kwargs': {"task_id": id, 'exclude_orgs': []}},
-        organization_ids=organisations
-    )
-    return
+def _setId(ip: str, id:str):
+    r = requests.post(ip + "/setID?id="+id)
 
-
-
-def _shareEndpoints(client, exclude_orgs, id):
-    # share endpoints amongst the n2n setup
-    task = client.post_task(
-        name="urlCollector",
-        image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/urlCollector",
-        collaboration_id=1,
-        input_={'method': 'shareEndpoints', 'master': True,
-                'kwargs': {"task_id": id, 'exclude_orgs': exclude_orgs}},
-        organization_ids=client.get('organization_ids')
-    )
-
-
-def _initEndpoints(client, exclude_orgs):
-    #start the various java endpoints for n2n
+def _initEndpoints(client, organizations):
+    # start the various java endpoints for n2n
     return client.post_task(
         name="vertiBayesSpring",
-        image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/vertibayes",
+        image=IMAGE,
         collaboration_id=1,
-        input_={'method': 'init', 'master': True,
-                'kwargs': {'exclude_orgs': exclude_orgs}},
-        organization_ids=client.get('organization_ids')
+        input_={'method': 'init'},
+        organization_ids=organizations
     )
+
 
 def _wait():
     time.sleep(WAIT)
 
-def _killEndpoints(client, exclude_orgs):
-    # kill the various java endpoints for n2n
-    task = client.post_task(
-        name="urlCollector",
-        image="carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/urlCollector",
-        collaboration_id=1,
-        input_={'method': 'killEndpoints', 'master': True,
-                'kwargs': {"task_id": id, 'exclude_orgs': exclude_orgs}},
-        organization_ids=client.get('organization_ids')
-    )
+def _await_addresses(client, task_id, n_nodes=1):
+    addresses = client.get_other_node_ip_and_port(task_id=task_id)
+
+    c = 0
+    while not _addresses_complete(addresses):
+        if c >= RETRY:
+            raise Exception('Retried too many times')
+
+        info(f'Polling results for port numbers attempt {c}...')
+        addresses = client.get_other_node_ip_and_port(task_id=task_id)
+        c += 1
+        time.sleep(WAIT)
+
+    return [_http_url(address['ip'], address['port']) for address in addresses]
+
+
+def _addresses_complete(addresses):
+    for a in addresses:
+        if not a['port']:
+            return False
+
+    return True
+
+
+def _http_url(address: str, port: int):
+    return f'http://{address}:{port}'

@@ -1,4 +1,8 @@
+import json
+import tempfile
 import unittest
+import jsonpickle
+from pgmpy.readwrite import BIFWriter
 
 from pomegranate.BayesianNetwork import BayesianNetwork
 
@@ -9,10 +13,12 @@ POPUlATION = 1000
 class CentralStationTest(unittest.TestCase):
     def test_network(self):
         #Should result in the following network: x1 -> x2 -> x3
-        vertiBayes = VertiBayes(POPUlATION, self._generateJSON())
+        vertiBayes = VertiBayes(POPUlATION, json.loads(self._generateJSON()))
         vertiBayes.defineLocalNetwork()
         vertiBayes.trainNetwork()
         network = vertiBayes.getNetwork()
+
+        print(json.dumps(vertiBayes.toBif()))
 
         self.assertEquals(len(network.get_cpds()), 3)
         self.assertEquals(network.get_cpds()[0].variable, 'x1')
@@ -27,7 +33,7 @@ class CentralStationTest(unittest.TestCase):
         # Pretty much the same network as without missing values, but slightly different values
         # This test purely exist to check stuff doesn't crash as testing for the exact CPD's is pointless
         # due to the RNG involved
-        vertiBayes = VertiBayes(POPUlATION, self._generateJSONMissingVlaues())
+        vertiBayes = VertiBayes(POPUlATION, json.loads(self._generateJSONMissingVlaues()))
         vertiBayes.defineLocalNetwork()
         vertiBayes.trainNetwork()
         network = vertiBayes.getNetwork()

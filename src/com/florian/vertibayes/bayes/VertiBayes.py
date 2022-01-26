@@ -1,17 +1,19 @@
-import json
 import pickle
 import random
 
 import numpy
 import pandas
 from pgmpy.models import BayesianNetwork
+from pgmpy.readwrite import BIFReader
+from pgmpy.readwrite import BIFWriter
+
 
 
 class VertiBayes:
     def __init__(self, population, nodes):
         self.__population = population
         self.__network = None
-        self.__nodes = json.loads(nodes)
+        self.__nodes = nodes
 
     def getNetwork(self):
         return self.__network
@@ -27,7 +29,6 @@ class VertiBayes:
         self.__network.fit(self._generateData())
 
     def _generateData(self):
-        individual = self._generateIndividual()
         data = []
         for i in range(0, self.__population):
             data.append(self._generateIndividual())
@@ -80,8 +81,15 @@ class VertiBayes:
             if individual.get(key) == '?':
                 individual[key] = numpy.NaN
 
+    def toBif(self):
+        x = BIFWriter(self.__network).__str__()
+        return x
 
-    def _generateOutputCSV(self, network: BayesianNetwork):
+    def fromBif(self, str):
+       return BIFReader(None, str).get_model()
+
+
+    def generateOutputCSV(self, network: BayesianNetwork):
         # Function to generate a CSV based on the network generated.
         # This generation is needed to provide the controllers at CBS something to work with.
         # This little script should probably be moved to the researcher at some point.
@@ -118,7 +126,7 @@ class VertiBayes:
         # close the file
         f.close()
 
-    def _visualize(self, network: BayesianNetwork):
+    def visualize(self, network: BayesianNetwork):
         # Simple method to visualize the bayesian network
         # This can be used in conjunction with the CSV with CPD's to give to the controllers
         # This will also need to be transfered to the researcher side at some point, but storing it here for now.
@@ -126,9 +134,3 @@ class VertiBayes:
         import matplotlib.pyplot as plt
         nx.draw(network, with_labels=True)
         plt.show()
-
-    def _pickle(self, network):
-        return pickle.dumps(network)
-
-    def _load(self, pickles):
-        return pickle.loads(pickles)

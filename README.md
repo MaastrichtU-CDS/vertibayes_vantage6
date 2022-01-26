@@ -33,6 +33,14 @@ task = client.post_task(
 )
 ```
 
+You can also use the vertibayes client to simplify the call:
+```python
+vertibayes_client = VertibayesClient(client)
+task = vertibayes_client.vertibayes(collaboration_id, commodity_node, node1, node2)
+
+```
+
+
 The predefined network structure must resemble the following:
 ```
 {[
