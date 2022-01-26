@@ -66,7 +66,7 @@ def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs
         info('Commiting murder')
         for adress in adresses:
             _killSpring(adress)
-
+        #
         vertibayes = VertiBayes(population, jsonNodes)
         vertibayes.defineLocalNetwork()
         vertibayes.trainNetwork()
