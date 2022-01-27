@@ -22,7 +22,7 @@ class VertiBayes:
         edges = []
         for node in self.__nodes:
             for parent in node.get('parents'):
-                edges.append((parent.get('name'), node.get('name')))
+                edges.append((parent, node.get('name')))
         self.__network = BayesianNetwork(edges)
 
     def trainNetwork(self):
@@ -51,24 +51,24 @@ class VertiBayes:
                             # no parents, just select a random value
                             y += theta.get('p')
                             if (x <= y):
-                                individual[node.get('name')] = theta.get('localValue').get('value')
+                                individual[node.get('name')] = theta.get('localValue')
                                 break
                         else:
                             # node has parents, so check if parent values have been selected yet
                             correctTheta = True
-                            for parent in theta.get('parents'):
-                                if individual.get(parent.get('name')) == None:
+                            for parent in theta.get('parentValues'):
+                                if individual.get(parent) == None:
                                     # not all parents are selected, move on
                                     correctTheta = False
                                     break
-                                elif individual.get(parent.get('name')) != parent.get('value').get('value'):
+                                elif individual.get(parent) != theta.get('parentValues')[parent]:
                                     # A parent has the wrong value, move on
                                     correctTheta = False
                                     break
                             if(correctTheta):
                                 y += theta.get('p')
                                 if (x <= y):
-                                    individual[node.get('name')] = theta.get('localValue').get('value')
+                                    individual[node.get('name')] = theta.get('localValue')
                                     break
         self._dealWithMissingValues(individual)
         return individual
