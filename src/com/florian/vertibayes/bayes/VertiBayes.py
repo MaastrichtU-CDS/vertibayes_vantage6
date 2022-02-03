@@ -51,7 +51,13 @@ class VertiBayes:
                             # no parents, just select a random value
                             y += theta.get('p')
                             if (x <= y):
-                                individual[node.get('name')] = theta.get('localValue')
+                                if node.get('discrete'):
+                                    individual[node.get('name')] = theta.get('localValue').get('localValue')
+                                else:
+                                    z = random.uniform(0,1)
+                                    lower = theta.get('localValue').get('upperLimit')
+                                    upper = theta.get('localValue').get('lowerLimit')
+                                    individual[node.get('name')] = float(lower) + z * (float(upper) - float(lower))
                                 break
                         else:
                             # node has parents, so check if parent values have been selected yet
@@ -61,16 +67,32 @@ class VertiBayes:
                                     # not all parents are selected, move on
                                     correctTheta = False
                                     break
-                                elif individual.get(parent) != theta.get('parentValues')[parent]:
-                                    # A parent has the wrong value, move on
-                                    correctTheta = False
-                                    break
+                                else:
+                                    # discrete values
+                                    if not theta.get('parentValues')[parent].get('range'):
+                                        if individual.get(parent) != theta.get('parentValues')[parent]:
+                                            # A parent has the wrong value, move on
+                                            correctTheta = False
+                                            break
+                                    else:
+                                        # range values
+                                        parentV = individual.get(parent)
+                                        if parentV >= float(theta.get('parentValues')[parent].get('upperLimit')) or parentV < float(theta.get('parentValues')[parent].get('lowerLimit')):
+                                            correctTheta = False
+                                            break
                             if(correctTheta):
                                 y += theta.get('p')
                                 if (x <= y):
-                                    individual[node.get('name')] = theta.get('localValue')
+                                    if node.get('discrete'):
+                                        individual[node.get('name')] = theta.get('localValue').get('localValue')
+                                    else:
+                                        z = random.uniform(0, 1)
+                                        lower = theta.get('localValue').get('upperLimit')
+                                        upper = theta.get('localValue').get('lowerLimit')
+                                        individual[node.get('name')] = float(lower) + z * (float(upper) - float(lower))
                                     break
         self._dealWithMissingValues(individual)
+
         return individual
 
     def _dealWithMissingValues(self, individual):
