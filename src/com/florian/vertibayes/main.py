@@ -14,7 +14,7 @@ RETRY = 20
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
-def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs):
+def vertibayes(client, data, nodes, initial_network, targetVariable, *args, **kwargs):
         """
     
         :param client:
@@ -62,22 +62,19 @@ def vertibayes(client, data, nodes, initial_network, population, *args, **kwargs
 
         _initCentralServer(commodity_address, adresses)
 
-        jsonNodes = _trainBayes(commodity_address, initial_network).get('nodes')
+        jsonNodes = _trainBayes(commodity_address, initial_network, targetVariable).get('nodes')
 
         info('Commiting murder')
         for adress in adresses:
             _killSpring(adress)
 
-        vertibayes = VertiBayes(population, jsonNodes)
-        vertibayes.defineLocalNetwork()
-        vertibayes.trainNetwork()
-
-        return vertibayes.toBif()
+        return jsonNodes
 
 
-def _trainBayes(targetUrl, initial_network):
+def _trainBayes(targetUrl, initial_network, targetVariable):
     r = requests.post(targetUrl + "/maximumLikelyhood", json={
-        "nodes": initial_network
+        "nodes": initial_network,
+        "target": targetVariable
     })
 
     return r.json()

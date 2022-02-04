@@ -3,62 +3,51 @@ import vantage6.client
 IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 NAME = 'vertibayes from client'
 
-INITIAL_NETWORK = [
-    {
-        "parents": [],
-        "name": "x1",
-        "type": "number"
-    }, {
-        "parents": ["x1"],
-        "name": "x2",
-        "type": "number"
-    }, {
-        "parents": ["x2"],
-        "name": "x3",
-        "type": "number"
-    }
-]
+# Example contains nodes of all three types:
+# numeric: Integers
+# real: real numbers
+# string: other
 
-INITIAL_NETWORK_BINS = [{
-    "parents": [],
-    "name": "x1",
-    "type": "number",
-    "probabilities": [],
-    "bins": [{
-        "upperLimit": "0.5",
-        "lowerLimit": "-1"
+INITIAL_NETWORK = [ {
+    "parents" : [ ],
+    "name" : "x1",
+    "type" : "numeric",
+    "probabilities" : [ ],
+    "bins" : [ {
+      "upperLimit" : "2",
+      "lowerLimit" : "1"
     }, {
-        "upperLimit": "1.5",
-        "lowerLimit": "0.5"
-    }],
-    "discrete": False
-}, {
-    "parents": ["x1"],
-    "name": "x2",
-    "type": "number",
-    "probabilities": [],
-    "bins": [{
-        "upperLimit": "0.5",
-        "lowerLimit": "-1"
+      "upperLimit" : "1",
+      "lowerLimit" : "-1"
     }, {
-        "upperLimit": "1.5",
-        "lowerLimit": "0.5"
-    }],
-    "discrete": False
-}, {
-    "parents": ["x2"],
-    "name": "x3",
-    "type": "number",
-    "probabilities": [],
-    "bins": [{
-        "upperLimit": "0.5",
-        "lowerLimit": "-1"
+      "upperLimit" : "?",
+      "lowerLimit" : "?"
+    } ],
+    "discrete" : True
+  }, {
+    "parents" : [ "x1" ],
+    "name" : "x2",
+    "type" : "real",
+    "probabilities" : [ ],
+    "bins" : [ {
+      "upperLimit" : "1.5",
+      "lowerLimit" : "0.5"
     }, {
-        "upperLimit": "1.5",
-        "lowerLimit": "0.5"
-    }],
-    "discrete": False
-}]
+      "upperLimit" : "0.5",
+      "lowerLimit" : "-1"
+    }, {
+      "upperLimit" : "?",
+      "lowerLimit" : "?"
+    } ],
+    "discrete" : False
+  }, {
+    "parents" : [ "x2" ],
+    "name" : "x3",
+    "type" : "string",
+    "probabilities" : [ ],
+    "bins" : [ ],
+    "discrete" : True
+  } ]
 
 
 class VertibayesClient:
@@ -70,16 +59,9 @@ class VertibayesClient:
         """
         self.client = client
 
-    def vertibayes(self, collaboration, commodity_node, nodes, population, bins):
-        if bins:
+    def vertibayes(self, collaboration, commodity_node, nodes, targetVariable):
             return self.client.task.create(collaboration=collaboration,
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input={'method': 'vertibayes', 'master': True,
-                                                  'args': [nodes, INITIAL_NETWORK_BINS, population]})
-        else:
-            return self.client.task.create(collaboration=collaboration,
-                                           organizations=[commodity_node],
-                                           name=NAME, image=IMAGE, description=NAME,
-                                           input={'method': 'vertibayes', 'master': True,
-                                                  'args': [nodes, INITIAL_NETWORK, population]})
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable]})
