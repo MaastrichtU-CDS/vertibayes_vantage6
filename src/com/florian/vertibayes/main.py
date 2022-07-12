@@ -116,7 +116,9 @@ def _wait():
     time.sleep(WAIT)
 
 def _await_addresses(client, task_id, n_nodes=1):
-    addresses = client.get_other_node_ip_and_port(task_id=task_id)
+    addresses = client.get_algorithm_addresses(task_id=task_id)
+
+    info(addresses)
 
     c = 0
     while not _addresses_complete(addresses):
@@ -124,15 +126,17 @@ def _await_addresses(client, task_id, n_nodes=1):
             raise Exception('Retried too many times')
 
         info(f'Polling results for port numbers attempt {c}...')
-        addresses = client.get_other_node_ip_and_port(task_id=task_id)
+        addresses = client.get_algorithm_addresses(task_id=task_id)
         c += 1
         time.sleep(WAIT)
+        info(addresses)
 
     return [_http_url(address['ip'], address['port']) for address in addresses]
 
 
 def _addresses_complete(addresses):
     for a in addresses:
+        info(a)
         if not a['port']:
             return False
 
