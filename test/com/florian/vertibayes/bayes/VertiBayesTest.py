@@ -1,10 +1,6 @@
 import json
 import tempfile
 import unittest
-import jsonpickle
-from pgmpy.readwrite import BIFWriter
-
-from pomegranate.BayesianNetwork import BayesianNetwork
 
 from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 

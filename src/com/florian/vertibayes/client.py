@@ -59,9 +59,9 @@ class VertibayesClient:
         """
         self.client = client
 
-    def vertibayes(self, collaboration, commodity_node, nodes, targetVariable):
+    def vertibayes(self, collaboration, commodity_node, nodes, targetVariable, minPercentage):
             return self.client.task.create(collaboration=collaboration,
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input={'method': 'vertibayes', 'master': True,
-                                                  'args': [nodes, INITIAL_NETWORK, targetVariable]})
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage]})

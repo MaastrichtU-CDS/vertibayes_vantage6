@@ -19,14 +19,14 @@ RUN ssh-keyscan gitlab.com >> /root/.ssh/known_hosts
 
 # Build n-scalar-product protocol
 WORKDIR /build
-RUN git clone git@gitlab.com:fvandaalen/n-scalar-product-protocol.git
+RUN git clone --branch 2.0-stable git@gitlab.com:fvandaalen/n-scalar-product-protocol.git
 
 WORKDIR /build/n-scalar-product-protocol/java
 RUN mvn install
 
 # Build vertibayes java
 WORKDIR /build
-RUN git clone git@gitlab.com:fvandaalen/vertibayes.git
+RUN git clone --branch 1.0-stable git@gitlab.com:fvandaalen/vertibayes.git
 
 WORKDIR /build/vertibayes
 RUN mvn package -Dmaven.test.skip
@@ -43,7 +43,7 @@ RUN apt update && apt install -y python3 python3-pip python3-dev g++ musl-dev li
 RUN ln -sf python3 /usr/bin/python
 RUN pip3 install --no-cache setuptools wheel poetry
 
-COPY --from=builder /build/vertibayes/target/vertibayes-1.0-SNAPSHOT.jar $JAR_PATH
+COPY --from=builder /build/vertibayes/target/vertibayes-1.0.jar $JAR_PATH
 
 # install federated algorithm
 COPY . /app
