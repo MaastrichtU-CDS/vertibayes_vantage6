@@ -1,6 +1,6 @@
 import vantage6.client
 
-IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 NAME = 'vertibayes from client'
 
 # Example contains nodes of all three types:
@@ -14,10 +14,10 @@ INITIAL_NETWORK = [ {
     "type" : "numeric",
     "probabilities" : [ ],
     "bins" : [ {
-      "upperLimit" : "2",
-      "lowerLimit" : "1"
+      "upperLimit" : "1.5",
+      "lowerLimit" : "0.5"
     }, {
-      "upperLimit" : "1",
+      "upperLimit" : "0.5",
       "lowerLimit" : "-1"
     }, {
       "upperLimit" : "?",
@@ -41,7 +41,7 @@ INITIAL_NETWORK = [ {
     } ],
     "discrete" : False
   }, {
-    "parents" : [ "x2" ],
+    "parents" : [ "x2","x1" ],
     "name" : "x3",
     "type" : "string",
     "probabilities" : [ ],

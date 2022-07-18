@@ -1,17 +1,18 @@
 import json
+import os
 import time
 from typing import List
 
+import pandas
 import requests
 from vantage6.common import info
 
 from com.florian import urlcollector
 from com.florian.vertibayes import secondary
-from com.florian.vertibayes.bayes.VertiBayes import VertiBayes
 
 WAIT = 10
 RETRY = 20
-IMAGE = 'carrrier-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
 def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, *args, **kwargs):
@@ -70,9 +71,8 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         return jsonNodes
 
-
 def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage):
-    r = requests.post(targetUrl + "/maximumLikelyhood", json={
+    r = requests.post(targetUrl + "/ExpectationMaximization", json={
         "nodes": initial_network,
         "target": targetVariable,
         "minPercentage": minPercentage
@@ -118,8 +118,6 @@ def _wait():
 def _await_addresses(client, task_id, n_nodes=1):
     addresses = client.get_algorithm_addresses(task_id=task_id)
 
-    info(addresses)
-
     c = 0
     while not _addresses_complete(addresses):
         if c >= RETRY:
@@ -129,17 +127,17 @@ def _await_addresses(client, task_id, n_nodes=1):
         addresses = client.get_algorithm_addresses(task_id=task_id)
         c += 1
         time.sleep(WAIT)
-        info(addresses)
-
+    info("Found adresses")
     return [_http_url(address['ip'], address['port']) for address in addresses]
 
 
 def _addresses_complete(addresses):
+    info("waiting for adresses to be complete")
+    if len(addresses) == 0:
+        return False
     for a in addresses:
-        info(a)
         if not a['port']:
             return False
-
     return True
 
 
