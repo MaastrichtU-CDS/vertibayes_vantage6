@@ -63,13 +63,13 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         _initCentralServer(commodity_address, adresses)
 
-        jsonNodes = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage).get('nodes')
+        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage)
 
         info('Commiting murder')
         for adress in adresses:
             _killSpring(adress)
 
-        return jsonNodes
+        return response
 
 def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage):
     r = requests.post(targetUrl + "/ExpectationMaximization", json={
