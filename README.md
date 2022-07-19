@@ -1,44 +1,36 @@
 ## Vertibayes
-This is the python half of the vertibayes implementation for Vantage6
+This is the python wrapper of the vertibayes implementation for Vantage6
 
-This docker container depends on two other containers:
-1) The java vertibayes container, which uses the n-party-scalar-product protocol for the federated aspect
-2) The endpoint-collector container, which is needed to coordinate the node to node communication within vantage6
+This docker container depends a java spring boot project, which uses the n-party-scalar-product protocol for the federated aspect
+This container will start the java project at every data station, then communicates the ip-adresses to each of them. After this it will run vertibayes.
+Once this is done it will kill the spring projects to ensure the containers close and return the output to the researcher.
+For more details on the spring project see: https://gitlab.com/fvandaalen/vertibayes
 
-This container works as follows:
+The images corresponding to this container are:
+harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:1.0-stable
+harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:vantage3.2.0_scalarproject-2.0-stable_vertibayes-1.0-stable
 
-1) Start the java container at all relevant parties. Including a commodity server
-2) use the endpoint-collector to share the relevant urls
-3) Use the java container to learn the maximum likelihood for a predefined network structur, treating the values as discrete
-4) Based on the learned maximum likelihood learned in the previous step, generate synthetic data
-5) Learn bayesian network, using the predefined structure, on the synthetic data
-6) Return this network
 
-The final bayesian network is learned using the pgmpy library (https://pgmpy.org/index.html)
 
 Vantage6 request:
 
 ```
-POPULATION =<Synthetic population size>
-NODES=<Predefined network structure>
+nodes=<Data-owner nodes>
+NETWORK=<redefined network structure>
 COMMODITYSERVER=<Organisation selected to play the role of commodity server>
+minPercentage=<minimum percentage used for binning scheme, 0.1, 0.25, 0.3 or 0.4>
+targetVariable=<the class variable>
     
 task = client.post_task(
     name="vertibayesPython",
     image="docker build -t carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/vertibayesPython",
     collaboration_id=1,
     input_={'method': 'vertibayes', 'master': True,
-            'kwargs': {commodityServer: COMMODITYSERVER, 'population':POPULATION, 'nodes':NODES , 'exclude_orgs': exclude_orgs}},
+            'kwargs': {commodityServer: COMMODITYSERVER, 'nodes':NETWORK , 'targetVariable':targetVariable, 'minPercentage':minPercentage, 'exclude_orgs': exclude_orgs}},
     organization_ids=[1]
 )
 ```
-
-You can also use the vertibayes client to simplify the call:
-```python
-vertibayes_client = VertibayesClient(client)
-task = vertibayes_client.vertibayes(collaboration_id, commodity_node, node1, node2)
-
-```
+An example can also be found in client.py
 
 
 The predefined network structure must resemble the following:
