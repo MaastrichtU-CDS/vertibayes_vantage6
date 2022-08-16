@@ -43,7 +43,7 @@ RUN apt update && apt install -y python3 python3-pip python3-dev g++ musl-dev li
 RUN ln -sf python3 /usr/bin/python
 RUN pip3 install --no-cache setuptools wheel poetry
 
-COPY --from=builder /build/vertibayes/target/vertibayes-1.0.jar $JAR_PATH
+COPY --from=builder /build/vertibayes/target/vertibayes-1.1.jar $JAR_PATH
 
 # install federated algorithm
 COPY . /app
