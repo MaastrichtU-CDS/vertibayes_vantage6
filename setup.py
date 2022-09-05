@@ -25,6 +25,6 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'pandas==1.3.5'
-        'pgmpy==0.1.16'
+
     ]
 )

@@ -1,6 +1,3 @@
-from pgmpy.models import BayesianNetwork
-
-
 class VertiBayes:
 
     def generateOutputCSV(self, network):
@@ -8,7 +5,6 @@ class VertiBayes:
         # This generation is needed to provide the controllers at CBS something to work with.
         # This little script should probably be moved to the researcher at some point.
         import csv
-        from pgmpy.factors.discrete import TabularCPD
 
         # open the file in the write mode
         f = open('output.csv', 'w', newline='')
