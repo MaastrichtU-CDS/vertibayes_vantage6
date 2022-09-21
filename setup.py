@@ -24,7 +24,9 @@ setup(
     packages=find_packages(where='./src'),
     python_requires='>=3.6',
     install_requires=[
-        'pandas==1.3.5'
+        'pandas==1.3.5',
+        'vantage6-client==3.3.6',
+        'vantage6==3.3.6'
 
     ]
 )

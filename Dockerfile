@@ -48,7 +48,6 @@ COPY --from=builder /build/vertibayes/target/vertibayes*.jar $JAR_PATH
 # install federated algorithm
 COPY . /app
 
-
 WORKDIR /app
 RUN poetry install && poetry cache clear -n --all pypi
 
