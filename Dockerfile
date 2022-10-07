@@ -26,7 +26,7 @@ RUN mvn install
 
 # Build vertibayes java
 WORKDIR /build
-RUN git clone --branch 1.1-stable git@github.com:MaastrichtU-CDS/vertibayes.git
+RUN git clone --branch 2.0-stable git@github.com:MaastrichtU-CDS/vertibayes.git
 
 WORKDIR /build/vertibayes
 RUN mvn package -Dmaven.test.skip
