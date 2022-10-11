@@ -5,6 +5,7 @@ ARG SSH_PRIVATE_KEY
 ARG SSH_PUBLIC_KEY
 
 RUN apk update && apk add openssh git
+RUN apk add --no-cache gcompat
 
 RUN mkdir /build
 RUN mkdir /root/.ssh
@@ -19,14 +20,14 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # Build n-scalar-product protocol
 WORKDIR /build
-RUN git clone --branch 2.1-stable git@github.com:MaastrichtU-CDS/n-scalar-product-protocol.git
+RUN git clone --branch 2.2-stable git@github.com:MaastrichtU-CDS/n-scalar-product-protocol.git
 
 WORKDIR /build/n-scalar-product-protocol/java
 RUN mvn install
 
 # Build vertibayes java
 WORKDIR /build
-RUN git clone --branch 2.0-stable git@github.com:MaastrichtU-CDS/vertibayes.git
+RUN git clone --branch 2.1-stable git@github.com:MaastrichtU-CDS/vertibayes.git
 
 WORKDIR /build/vertibayes
 RUN mvn package -Dmaven.test.skip
