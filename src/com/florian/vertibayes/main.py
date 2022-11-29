@@ -15,7 +15,7 @@ RETRY = 20
 IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
 
 
-def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, *args, **kwargs):
+def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, folds, *args, **kwargs):
         """
     
         :param client:
@@ -63,7 +63,7 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         _initCentralServer(commodity_address, adresses)
 
-        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage)
+        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage, folds)
 
         info('Commiting murder')
         for adress in adresses:
@@ -71,11 +71,12 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         return response
 
-def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage):
+def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage, folds):
     r = requests.post(targetUrl + "/ExpectationMaximization", json={
         "nodes": initial_network,
         "target": targetVariable,
-        "minPercentage": minPercentage
+        "minPercentage": minPercentage,
+        "folds":folds
     })
 
     return r.json()
