@@ -1,6 +1,6 @@
 import vantage6.client
 
-IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:2.1'
 NAME = 'vertibayes from client'
 
 # Example contains nodes of all three types:

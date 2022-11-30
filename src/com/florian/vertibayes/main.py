@@ -12,7 +12,7 @@ from com.florian.vertibayes import secondary
 
 WAIT = 10
 RETRY = 20
-IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:2.1'
 
 
 def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, folds, *args, **kwargs):
@@ -76,7 +76,8 @@ def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage, folds
         "nodes": initial_network,
         "target": targetVariable,
         "minPercentage": minPercentage,
-        "folds":folds
+        "folds":folds,
+        "openMarkovResponse":True,
     })
 
     return r.json()
@@ -137,6 +138,7 @@ def _addresses_complete(addresses):
     if len(addresses) == 0:
         return False
     for a in addresses:
+        info(a)
         if not a['port']:
             return False
     return True
