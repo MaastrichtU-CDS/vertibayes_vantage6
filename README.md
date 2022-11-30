@@ -7,10 +7,9 @@ Once this is done it will kill the spring projects to ensure the containers clos
 For more details on the spring project see: https://gitlab.com/fvandaalen/vertibayes
 
 The images corresponding to this container are:
-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:1.0-stable
-harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:vantage3.2.0_scalarproject-2.0-stable_vertibayes-1.0-stable
+harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:2.1
 
-
+It uses the openmarkov response from Vertibayes by default.
 
 Vantage6 request:
 
@@ -20,14 +19,13 @@ NETWORK=<redefined network structure>
 COMMODITYSERVER=<Organisation selected to play the role of commodity server>
 minPercentage=<minimum percentage used for binning scheme, 0.1, 0.25, 0.3 or 0.4>
 targetVariable=<the class variable>
+folds=<number of folds for crossfold validation, max 10, min 1>
     
-task = client.post_task(
-    name="vertibayesPython",
-    image="docker build -t carrier-harbor2.carrier-mu.surf-hosted.nl/florian-project/vertibayesPython",
-    collaboration_id=1,
-    input_={'method': 'vertibayes', 'master': True,
-            'kwargs': {commodityServer: COMMODITYSERVER, 'nodes':NETWORK , 'targetVariable':targetVariable, 'minPercentage':minPercentage, 'exclude_orgs': exclude_orgs}},
-    organization_ids=[1]
+task = self.client.task.create(collaboration=collaboration,
+                                           organizations=[commodity_node],
+                                           name=NAME, image=IMAGE, description=NAME,
+                                           input={'method': 'vertibayes', 'master': True,
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds]})
 )
 ```
 An example can also be found in client.py
