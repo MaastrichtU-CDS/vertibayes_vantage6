@@ -22,11 +22,9 @@ setup(
     long_description_content_type='text/markdown',
     url='https://gitlab.com/fvandaalen/verticaldt',
     packages=find_packages(where='./src'),
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     install_requires=[
         'pandas==1.3.5',
-        'vantage6-client==3.3.6',
-        'vantage6==3.3.6'
-
+        'vantage6-client==3.7.3'
     ]
 )

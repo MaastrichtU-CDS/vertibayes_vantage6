@@ -1,6 +1,6 @@
 import vantage6.client
 
-IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:2.1'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:3.0'
 NAME = 'vertibayes from client'
 
 # Example contains nodes of all three types:
@@ -59,9 +59,16 @@ class VertibayesClient:
         """
         self.client = client
 
-    def vertibayes(self, collaboration, commodity_node, nodes, targetVariable, minPercentage, folds):
+    def vertibayes(self, collaboration, commodity_node, nodes, targetVariable, minPercentage, folds, trainStructure):
             return self.client.task.create(collaboration=collaboration,
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input={'method': 'vertibayes', 'master': True,
-                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds]})
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds, trainStructure]})
+
+    def vertibayesNoInitialNetwork(self, collaboration, commodity_node, nodes, targetVariable, minPercentage, folds, trainStructure):
+            return self.client.task.create(collaboration=collaboration,
+                                           organizations=[commodity_node],
+                                           name=NAME, image=IMAGE, description=NAME,
+                                           input={'method': 'vertibayes', 'master': True,
+                                                  'args': [nodes, None, targetVariable, minPercentage, folds, trainStructure]})

@@ -15,17 +15,18 @@ Vantage6 request:
 
 ```
 nodes=<Data-owner nodes>
-NETWORK=<redefined network structure>
+NETWORK=<Predefined network structure, may be left None>
 COMMODITYSERVER=<Organisation selected to play the role of commodity server>
 minPercentage=<minimum percentage used for binning scheme, 0.1, 0.25, 0.3 or 0.4>
 targetVariable=<the class variable>
 folds=<number of folds for crossfold validation, max 10, min 1>
+trainStructure=<flag to indicate if structure learning should be applied. This can be on top of a predefined structure>
     
 task = self.client.task.create(collaboration=collaboration,
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input={'method': 'vertibayes', 'master': True,
-                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds]})
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds, trainStructure]})
 )
 ```
 An example can also be found in client.py

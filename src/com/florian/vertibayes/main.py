@@ -12,12 +12,12 @@ from com.florian.vertibayes import secondary
 
 WAIT = 10
 RETRY = 20
-IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:2.1'
+IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:3.0'
 
 
-def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, folds, *args, **kwargs):
+def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, folds,trainStructure, *args, **kwargs):
         """
-    
+
         :param client:
         :param exclude_orgs:
         :param nodes, organizations who own the data
@@ -63,7 +63,7 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         _initCentralServer(commodity_address, adresses)
 
-        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage, folds)
+        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage, folds, trainStructure)
 
         info('Commiting murder')
         for adress in adresses:
@@ -71,15 +71,15 @@ def vertibayes(client, data, nodes, initial_network, targetVariable, minPercenta
 
         return response
 
-def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage, folds):
+def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage, folds, trainStructure):
     r = requests.post(targetUrl + "/ExpectationMaximization", json={
         "nodes": initial_network,
         "target": targetVariable,
         "minPercentage": minPercentage,
         "folds":folds,
         "openMarkovResponse":True,
+        "trainStructure": trainStructure
     })
-
     return r.json()
 
 
