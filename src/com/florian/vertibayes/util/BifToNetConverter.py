@@ -10,8 +10,11 @@ def mapBif(bif):
     net = "net{}";
     for var in dict['Variables']['Variable']:
         net += " node " + var['@name'] + " { states = ( "
-        for state in var["States"]['State']:
-            net += "\"" + state['@name'] + "\" "
+        if len(var["States"]['State']) == 1:
+            net += var["States"]['State']['@name']
+        else:
+            for state in var["States"]['State']:
+                net += "\"" + state['@name'] + "\" "
 
         net+=");}"
 
