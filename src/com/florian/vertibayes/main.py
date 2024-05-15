@@ -20,6 +20,14 @@ NODE_TIMEOUT = 360
 MAX_RETRIES = NODE_TIMEOUT // SLEEP
 
 
+def parse_addresses(adresses):
+    parsed = []
+    for adress in  adresses:
+        parsed.append(f'http://{adress["ip"]}:{adress["port"]}')
+
+    return parsed
+
+
 @algorithm_client
 def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, folds, trainStructure, *args, **kwargs):
     """
@@ -30,16 +38,17 @@ def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, fo
     :param commoditynode: organization id of commodity node
     :return: bayesian network in the form of a bif-file, such as pgmpy expects.
     """
-    tasks = []
+
     info('Initializing nodes')
     for node in nodes:
-        tasks.append(_initEndpoints(client, [node]))
+        _initEndpoints(client, [node])
 
     # TODO: init commodity server on a different server?
     info('initializing commodity server')
     commodity_node_task = secondary.init_local()
 
-    adresses = _get_algorithm_addresses( len(tasks))
+
+    adresses = _get_algorithm_addresses(client, len(nodes))
 
     # assuming the last taks before tasks[0] controls the commodity server
     # Assumption is basically that noone got in between the starting of this master-task and its subtasks
@@ -56,8 +65,13 @@ def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, fo
 
     info('Sharing addresses & setting ids')
     _setId(commodity_address, "0");
+
+    adresses = parse_addresses(adresses)
+
     id = 1
+
     for adress in adresses:
+        print('hoi' + adress)
         _setId(adress, str(id));
         id += 1
         others = adresses.copy()
@@ -108,7 +122,7 @@ def _killSpring(server: str):
 
 
 def _setId(ip: str, id: str):
-    r = requests.post(ip + "/setID?id=" + id)
+    r = requests.post(ip + "/setID",params={"id":id})
 
 
 def _initEndpoints(client, organizations):
@@ -124,12 +138,12 @@ def _wait():
     time.sleep(WAIT)
 
 
-def _get_algorithm_addresses(self, expected_amount: int):
+def _get_algorithm_addresses(client, expected_amount: int):
     retries = 0
 
     # Wait for nodes to get ready
     while True:
-        addresses = self._v6_client.vpn.get_child_addresses()
+        addresses = client.vpn.get_child_addresses()
 
         info(f"Addresses: {addresses}")
 

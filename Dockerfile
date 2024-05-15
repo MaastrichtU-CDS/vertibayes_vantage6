@@ -56,4 +56,4 @@ RUN poetry install && poetry cache clear -n --all pypi
 ENV PKG_NAME=${PKG_NAME}
 
 # Tell docker to execute `docker_wrapper()` when the image is run.
-CMD poetry run python -c "from vantage6.algorithm.wrap import wrap_algorithm; wrap_algorithm()"
+CMD poetry run python -c "from vantage6.algorithm.tools.wrap import wrap_algorithm; wrap_algorithm()"
