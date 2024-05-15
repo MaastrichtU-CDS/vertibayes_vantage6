@@ -1,11 +1,10 @@
-import json
-import os
 import time
 from typing import List
 
-import pandas
 import requests
 from vantage6.common import info
+
+from vantage6.algorithm.tools.decorators import algorithm_client
 
 from com.florian import urlcollector
 from com.florian.vertibayes import secondary
@@ -15,69 +14,75 @@ RETRY = 20
 IMAGE = 'harbor.carrier-mu.src.surf-hosted.nl/carrier/vertibayes:3.0'
 
 
-def vertibayes(client, data, nodes, initial_network, targetVariable, minPercentage, folds,trainStructure, *args, **kwargs):
-        """
+SLEEP = 10
+WAIT_CONTAINER_STARTUP = 10
+NODE_TIMEOUT = 360
+MAX_RETRIES = NODE_TIMEOUT // SLEEP
 
-        :param client:
-        :param exclude_orgs:
-        :param nodes, organizations who own the data
-        :param commoditynode: organization id of commodity node
-        :return: bayesian network in the form of a bif-file, such as pgmpy expects.
-        """
-        tasks = []
-        info('Initializing nodes')
-        for node in nodes:
-            tasks.append(_initEndpoints(client, [node]))
 
-        # TODO: init commodity server on a different server?
-        info('initializing commodity server')
-        commodity_node_task = secondary.init_local()
+@algorithm_client
+def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, folds, trainStructure, *args, **kwargs):
+    """
 
-        adresses = []
-        for task in tasks:
-            adresses.append(_await_addresses(client, task["id"])[0])
+    :param client:
+    :param exclude_orgs:
+    :param nodes, organizations who own the data
+    :param commoditynode: organization id of commodity node
+    :return: bayesian network in the form of a bif-file, such as pgmpy expects.
+    """
+    tasks = []
+    info('Initializing nodes')
+    for node in nodes:
+        tasks.append(_initEndpoints(client, [node]))
 
-        #assuming the last taks before tasks[0] controls the commodity server
-        #Assumption is basically that noone got in between the starting of this master-task and its subtasks
-        #ToDo make this more stable in case of multiple users
-        global_commodity_address = _await_addresses(client, tasks[0]["id"]-1)[0]
+    # TODO: init commodity server on a different server?
+    info('initializing commodity server')
+    commodity_node_task = secondary.init_local()
 
-        # Assuming commodity server is on same machine
-        commodity_address = _http_url('localhost', 8888)
-        info(f'Commodity address: {commodity_address}')
+    adresses = _get_algorithm_addresses( len(tasks))
 
-        # wait a moment for Spring to start
-        info('Waiting for spring to start...')
-        _wait()
+    # assuming the last taks before tasks[0] controls the commodity server
+    # Assumption is basically that noone got in between the starting of this master-task and its subtasks
+    # ToDo make this more stable in case of multiple users
+    global_commodity_address = client.vpn.get_own_address()
 
-        info('Sharing addresses & setting ids')
-        _setId(commodity_address, "0");
-        id = 1
-        for adress in adresses:
-            _setId(adress, str(id));
-            id+=1
-            others = adresses.copy()
-            others.remove(adress)
-            others.append(global_commodity_address)
-            urlcollector.put_endpoints(adress, others)
+    # Assuming commodity server is on same machine
+    commodity_address = _http_url('localhost', 8888)
+    info(f'Commodity address: {commodity_address}')
 
-        _initCentralServer(commodity_address, adresses)
+    # wait a moment for Spring to start
+    info('Waiting for spring to start...')
+    _wait()
 
-        response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage, folds, trainStructure)
+    info('Sharing addresses & setting ids')
+    _setId(commodity_address, "0");
+    id = 1
+    for adress in adresses:
+        _setId(adress, str(id));
+        id += 1
+        others = adresses.copy()
+        others.remove(adress)
+        others.append(global_commodity_address)
+        urlcollector.put_endpoints(adress, others)
 
-        info('Commiting murder')
-        for adress in adresses:
-            _killSpring(adress)
+    _initCentralServer(commodity_address, adresses)
 
-        return response
+    response = _trainBayes(commodity_address, initial_network, targetVariable, minPercentage, folds, trainStructure)
+
+    info('Commiting murder')
+    for adress in adresses:
+        _killSpring(adress)
+
+    return response
+
 
 def _trainBayes(targetUrl, initial_network, targetVariable, minPercentage, folds, trainStructure):
     r = requests.post(targetUrl + "/ExpectationMaximization", json={
         "nodes": initial_network,
         "target": targetVariable,
         "minPercentage": minPercentage,
-        "folds":folds,
-        "openMarkovResponse":True,
+        "folds": folds,
+        "openMarkovResponse": True,
         "trainStructure": trainStructure
     })
     return r.json()
@@ -92,6 +97,7 @@ def _initCentralServer(central: str, others: List[str]):
     if not r.ok:
         raise Exception("Could not initialize central server")
 
+
 def _killSpring(server: str):
     try:
         r = requests.put(server + "/kill")
@@ -100,37 +106,45 @@ def _killSpring(server: str):
         info(e)
         pass
 
-def _setId(ip: str, id:str):
-    r = requests.post(ip + "/setID?id="+id)
+
+def _setId(ip: str, id: str):
+    r = requests.post(ip + "/setID?id=" + id)
+
 
 def _initEndpoints(client, organizations):
     # start the various java endpoints for n2n
-    return client.post_task(
+    return client.task.create(
         name="vertiBayesSpring",
-        image=IMAGE,
-        collaboration_id=1,
         input_={'method': 'init'},
-        organization_ids=organizations
+        organizations=organizations
     )
 
 
 def _wait():
     time.sleep(WAIT)
 
-def _await_addresses(client, task_id, n_nodes=1):
-    addresses = client.get_algorithm_addresses(task_id=task_id)
 
-    c = 0
-    while not _addresses_complete(addresses):
-        if c >= RETRY:
-            raise Exception('Retried too many times')
+def _get_algorithm_addresses(self, expected_amount: int):
+    retries = 0
 
-        info(f'Polling results for port numbers attempt {c}...')
-        addresses = client.get_algorithm_addresses(task_id=task_id)
-        c += 1
-        time.sleep(WAIT)
-    info("Found adresses")
-    return [_http_url(address['ip'], address['port']) for address in addresses]
+    # Wait for nodes to get ready
+    while True:
+        addresses = self._v6_client.vpn.get_child_addresses()
+
+        info(f"Addresses: {addresses}")
+
+        if len(addresses) >= expected_amount:
+            break
+
+        if retries >= MAX_RETRIES:
+            raise Exception(
+                f"Could not connect to all {expected_amount} datanodes. There are "
+                f"only {len(addresses)} nodes available"
+            )
+        time.sleep(SLEEP)
+        retries += 1
+
+    return addresses
 
 
 def _addresses_complete(addresses):

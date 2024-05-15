@@ -3,9 +3,6 @@ from typing import Any, Dict, Tuple
 
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
-from vantage6.tools.util import info
-from time import sleep
-import traceback
 
 RETRY = 10
 

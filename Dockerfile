@@ -32,7 +32,7 @@ RUN git clone --branch 3.0-stable git@github.com:MaastrichtU-CDS/vertibayes.git
 WORKDIR /build/vertibayes
 RUN mvn package -Dmaven.test.skip
 
-FROM openjdk:17-slim as runner
+FROM eclipse-temurin:17.0.7_7-jdk as runner
 
 # This is a placeholder that should be overloaded by invoking
 # docker build with '--build-arg PKG_NAME=...'
@@ -56,4 +56,4 @@ RUN poetry install && poetry cache clear -n --all pypi
 ENV PKG_NAME=${PKG_NAME}
 
 # Tell docker to execute `docker_wrapper()` when the image is run.
-CMD poetry run python -c "from vantage6.tools.docker_wrapper import docker_wrapper; docker_wrapper('${PKG_NAME}')"
+CMD poetry run python -c "from vantage6.algorithm.wrap import wrap_algorithm; wrap_algorithm()"

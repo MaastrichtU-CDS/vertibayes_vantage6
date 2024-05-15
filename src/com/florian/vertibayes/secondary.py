@@ -1,12 +1,15 @@
 import os
 import subprocess
 
+from vantage6.algorithm.tools.decorators import data
+
 from vantage6.common import info
 
 DEFAULT_PORT = 8888
 
 
-def RPC_init(data, *args, **kwargs):
+@data
+def init(data, *args, **kwargs):
     info('Starting java server')
     # TODO: Create properties file
     subprocess.run(['java', '-jar', _get_jar_path()])
