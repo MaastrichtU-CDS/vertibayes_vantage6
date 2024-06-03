@@ -64,11 +64,17 @@ class VertibayesClient:
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input_={'method': 'vertibayes',
-                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds, trainStructure]})
+                                                  'args': [nodes, INITIAL_NETWORK, targetVariable, minPercentage, folds, trainStructure]},
+                                           databases=[
+                                               {'label': 'smallk'}
+                                           ])
 
     def vertibayesNoInitialNetwork(self, collaboration, commodity_node, nodes, targetVariable, minPercentage, folds, trainStructure):
             return self.client.task.create(collaboration=collaboration,
                                            organizations=[commodity_node],
                                            name=NAME, image=IMAGE, description=NAME,
                                            input_={'method': 'vertibayes',
-                                                  'args': [nodes, None, targetVariable, minPercentage, folds, trainStructure]})
+                                                  'args': [nodes, None, targetVariable, minPercentage, folds, trainStructure]},
+                                           databases=[
+                                               {'label': 'smallk'}
+                                           ])

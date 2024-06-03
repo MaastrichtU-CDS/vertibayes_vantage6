@@ -22,11 +22,13 @@ MAX_RETRIES = NODE_TIMEOUT // SLEEP
 
 def parse_addresses(adresses):
     parsed = []
-    for adress in  adresses:
-        parsed.append(f'http://{adress["ip"]}:{adress["port"]}')
+    for adress in adresses:
+        parsed.append(parse_adress(adress))
 
     return parsed
 
+def parse_adress(adress):
+    return f'http://{adress["ip"]}:{adress["port"]}'
 
 @algorithm_client
 def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, folds, trainStructure, *args, **kwargs):
@@ -71,12 +73,12 @@ def vertibayes(client, nodes, initial_network, targetVariable, minPercentage, fo
     id = 1
 
     for adress in adresses:
-        print('hoi' + adress)
         _setId(adress, str(id));
         id += 1
         others = adresses.copy()
         others.remove(adress)
-        others.append(global_commodity_address)
+        # for some reason global_commodity_address is a list of length 1, so pick first one
+        others.append(parse_adress(global_commodity_address[0]))
         urlcollector.put_endpoints(adress, others)
 
     _initCentralServer(commodity_address, adresses)
